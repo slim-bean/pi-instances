@@ -1,0 +1,18 @@
+{
+  "name": "pi-instances",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Track running pi instances and whether each agent is working or waiting for input.",
+  "type": "module",
+  "keywords": ["pi-package"],
+  "license": "MIT",
+  "bin": {
+    "pi-instances": "./bin/pi-instances.mjs"
+  },
+  "pi": {
+    "extensions": ["./extensions/index.ts"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  }
+}
