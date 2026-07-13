@@ -29,10 +29,23 @@ pi instance C ─┘        (one file each)
 Because it is cooperative (each pi reports its own state) it can show
 working-vs-waiting, which sniffing `ps` alone cannot.
 
-## Install (global — recommended)
+## Install
 
-You run pi from many worktrees, so load this everywhere via
-`~/.pi/agent/settings.json`:
+Install globally (loads in every pi instance) straight from git:
+
+```bash
+pi install git:github.com/slim-bean/pi-instances
+# pin a release for reproducibility:
+pi install git:github.com/slim-bean/pi-instances@v0.1.0
+```
+
+Try it for one run without installing:
+
+```bash
+pi -e git:github.com/slim-bean/pi-instances
+```
+
+Or point at a local checkout via `~/.pi/agent/settings.json`:
 
 ```jsonc
 {
@@ -44,7 +57,10 @@ You run pi from many worktrees, so load this everywhere via
 
 Reload pi (or `/reload`) and every instance starts reporting.
 
-For a one-off/dev run: `pi -e ~/projects/pi-instances/extensions/index.ts`.
+> **Viewer CLI note:** `pi install` loads the *extension*; it does not put the
+> `pi-instances` viewer binary on your `PATH`. Run the viewer from the clone,
+> e.g. `node ~/.pi/agent/git/github.com/slim-bean/pi-instances/bin/pi-instances.mjs top`,
+> or from a local checkout, and alias it (see below).
 
 ## The viewer
 
