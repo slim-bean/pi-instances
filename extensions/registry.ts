@@ -32,7 +32,13 @@ export interface InstanceRecord {
 	/** Short description of what the agent is doing (e.g. "bash: make test"). */
 	activity?: string;
 	startedAt: number;
+	/** Last heartbeat/write (also used for staleness). Bumped every ~5s. */
 	updatedAt: number;
+	/**
+	 * Timestamp of the last genuine agent activity (status change, tool step, or
+	 * token stream) — NOT the heartbeat. Used to sort most-recently-active first.
+	 */
+	lastActivityAt?: number;
 	/**
 	 * Origin of the record. Local pi instances leave this unset; records written
 	 * by `yono attach` (mirroring a remote sandbox agent's beacon) set

@@ -103,6 +103,11 @@ visible list of everything running:
 It uses the terminal's alternate screen and restores it cleanly on `q`, Ctrl+C,
 or exit.
 
+Both sections sort **most-recently-active first**, using a real activity
+timestamp (status change, tool step, or token stream) — not the 5s heartbeat —
+so whatever an agent last did floats to the top. Attached sandboxes sort the
+same way when the yono CLI reports `lastActivityAt` (yono ≥ the PR that adds it).
+
 Example:
 
 ```

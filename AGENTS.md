@@ -51,6 +51,18 @@ Cooperative, file-based registry — no daemon.
 - There is no way to read a Ghostty tab name into a process (no title-report
   query, not in env), so labels flow one way: we name the instance and push out.
 
+## Sorting
+
+- Both viewer sections sort by `activityTime(r)` descending (most recent first):
+  `lastActivityAt ?? updatedAt ?? startedAt`.
+- `lastActivityAt` advances only on real activity: `setStatus` (agent_start,
+  tool_execution_start, agent_end) and in-memory `markActive()` on
+  `message_update` / `tool_execution_update` (persisted by the next heartbeat).
+  It is deliberately NOT bumped by the plain heartbeat `flush()`, so idle
+  instances sink over time.
+- The beacon carries `last_activity_at`; the yono attach reporter copies it into
+  yono-attach records so remote rows sort consistently.
+
 ## Invariants / gotchas
 
 - Never start timers/watchers in the extension factory — pi forbids it. The

@@ -101,6 +101,7 @@ function yonoAttachRows() {
 			session: r.session || "agent",
 			startedAt: r.startedAt,
 			updatedAt: r.updatedAt,
+			lastActivityAt: r.lastActivityAt,
 			status: r.status,
 			activity: r.activity,
 			model: r.model,
@@ -110,7 +111,7 @@ function yonoAttachRows() {
 		if (byPid.has(p.pid)) continue;
 		rows.push({ ...p, status: null });
 	}
-	return rows.sort((a, b) => (a.sandbox || "").localeCompare(b.sandbox || ""));
+	return rows.sort((a, b) => activityTime(b) - activityTime(a));
 }
 
 function fmtAge(ms) {
@@ -138,6 +139,12 @@ function statusCell(rec) {
 	}
 }
 
+// Time of last genuine activity, most-recent-first sort key. Falls back to the
+// heartbeat then start time for records/processes without an activity stamp.
+function activityTime(r) {
+	return r.lastActivityAt ?? r.updatedAt ?? r.startedAt ?? 0;
+}
+
 // Primary display name for a local pi record: explicit label wins, else the
 // project (with git branch when known).
 function nameOf(r) {
@@ -153,11 +160,7 @@ function pad(s, n) {
 }
 
 function render() {
-	const records = splitRecords(listRecords()).pi.sort((a, b) => {
-		const order = { working: 0, waiting: 1, starting: 2 };
-		const d = (order[a.status] ?? 3) - (order[b.status] ?? 3);
-		return d !== 0 ? d : (a.project || "").localeCompare(b.project || "");
-	});
+	const records = splitRecords(listRecords()).pi.sort((a, b) => activityTime(b) - activityTime(a));
 
 	const lines = [];
 	const stamp = new Date().toLocaleTimeString();
@@ -265,11 +268,7 @@ function parseYonoAttachArgs(args) {
 
 function renderTop(width) {
 	const w = width || 80;
-	const records = splitRecords(listRecords()).pi.sort((a, b) => {
-		const order = { working: 0, waiting: 1, starting: 2 };
-		const d = (order[a.status] ?? 3) - (order[b.status] ?? 3);
-		return d !== 0 ? d : (a.project || "").localeCompare(b.project || "");
-	});
+	const records = splitRecords(listRecords()).pi.sort((a, b) => activityTime(b) - activityTime(a));
 	const attach = yonoAttachRows();
 
 	const working = records.filter((r) => r.status === "working").length;

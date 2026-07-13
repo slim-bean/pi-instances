@@ -39,6 +39,7 @@ interface BeaconPayload {
 	session?: string;
 	pid: number;
 	updated_at: number;
+	last_activity_at?: number;
 	source: "pi";
 }
 
@@ -52,6 +53,7 @@ export function emitBeacon(record: InstanceRecord): void {
 		session: record.session,
 		pid: record.pid,
 		updated_at: record.updatedAt,
+		last_activity_at: record.lastActivityAt,
 		source: "pi",
 	};
 	try {

@@ -55,6 +55,13 @@ export default function (pi: ExtensionAPI) {
 		status: "starting",
 		startedAt: Date.now(),
 		updatedAt: Date.now(),
+		lastActivityAt: Date.now(),
+	};
+
+	// Bump last-activity in memory without a disk write. The heartbeat flush
+	// persists it within ~5s; called from high-frequency stream events.
+	const markActive = () => {
+		state.lastActivityAt = Date.now();
 	};
 
 	const flush = () => {
@@ -87,6 +94,7 @@ export default function (pi: ExtensionAPI) {
 	const setStatus = (status: InstanceStatus, activity?: string) => {
 		state.status = status;
 		if (activity !== undefined) state.activity = activity;
+		state.lastActivityAt = Date.now();
 		flush();
 	};
 
@@ -185,6 +193,15 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("agent_end", async () => {
 		setStatus("waiting", "");
+	});
+
+	// Keep an actively-working instance's activity time fresh while it streams
+	// tokens or a long tool runs, without writing on every event.
+	pi.on("message_update", async () => {
+		markActive();
+	});
+	pi.on("tool_execution_update", async () => {
+		markActive();
 	});
 
 	pi.on("session_shutdown", async (event) => {
