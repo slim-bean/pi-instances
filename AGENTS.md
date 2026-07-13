@@ -38,6 +38,19 @@ Cooperative, file-based registry — no daemon.
   names are snake_case to match sessiond's `AgentStatus` struct tags** — keep
   the two in sync (there is a Go interop test pinning the exact wire bytes).
 
+## Labels
+
+- `label` (optional on `InstanceRecord`) is the human name shown in the viewer.
+  Sourced from `PI_INSTANCE_LABEL` at `session_start` or the `/instances-label`
+  command. `nameOf()` in the viewer prefers it over project/branch.
+- When a label is set, the extension pushes it to the terminal (pane) title via
+  `ctx.ui.setTitle()` (never raw OSC — pi manages the title). `pushTitle()` is
+  re-applied on every `flush()` so it survives pi's own periodic title updates.
+  Per-pane by nature (each pane sets its own surface title); Ghostty shows the
+  focused pane's. Opt out with `PI_INSTANCE_TITLE=0`.
+- There is no way to read a Ghostty tab name into a process (no title-report
+  query, not in env), so labels flow one way: we name the instance and push out.
+
 ## Invariants / gotchas
 
 - Never start timers/watchers in the extension factory — pi forbids it. The

@@ -138,6 +138,13 @@ function statusCell(rec) {
 	}
 }
 
+// Primary display name for a local pi record: explicit label wins, else the
+// project (with git branch when known).
+function nameOf(r) {
+	if (r.label) return r.label;
+	return r.git ? `${r.project} (${r.git})` : r.project;
+}
+
 function pad(s, n) {
 	// Pad ignoring ANSI escape width.
 	const bare = s.replace(/\x1b\[[0-9;]*m/g, "");
@@ -175,7 +182,7 @@ function render() {
 		c(C.dim, pad("STATUS", 9) + pad("PID", 8) + pad("PROJECT", 40) + pad("AGE", 7) + "ACTIVITY / MODEL"),
 	);
 	for (const r of records) {
-		const where = r.git ? `${r.project} (${r.git})` : r.project;
+		const where = nameOf(r);
 		const detail = r.activity
 			? r.activity
 			: c(C.dim, r.model || "");
@@ -287,7 +294,7 @@ function renderTop(width) {
 	} else {
 		lines.push(c(C.dim, " " + pad("STATUS", 9) + pad("PID", 8) + pad("PROJECT", 34) + pad("AGE", 7) + "ACTIVITY / MODEL"));
 		for (const r of records) {
-			const where = r.git ? `${r.project} (${r.git})` : r.project;
+			const where = nameOf(r);
 			const detail = r.activity ? r.activity : c(C.dim, r.model || "");
 			lines.push(
 				" " +

@@ -116,8 +116,31 @@ STATUS   PID     PROJECT                                  AGE    ACTIVITY / MODE
 
 ## Inside pi
 
-The extension also registers `/instances` to print the same list without leaving
-your session.
+The extension registers `/instances` to print the list without leaving your
+session, and `/instances-label` to name the current instance.
+
+## Naming an instance
+
+Give an instance a human-friendly label that shows as its primary name in the
+viewer (and, by default, becomes the terminal/pane title):
+
+```bash
+PI_INSTANCE_LABEL="pr-review" pi     # set at launch
+```
+
+or from inside pi:
+
+```
+/instances-label pr-review          # set
+/instances-label                    # show current
+/instances-label -                  # clear
+```
+
+**Multiple panes:** each Ghostty split is its own process, so each pane gets its
+own label and its own row in the viewer. The label is pushed to each pane's own
+surface title, so Ghostty's tab bar shows whichever pane is focused. (There is
+no way to read a Ghostty tab name *into* a program, so this is the reliable way
+to name per-pane instances.) Disable the title push with `PI_INSTANCE_TITLE=0`.
 
 ## Remote sandboxes (yono)
 

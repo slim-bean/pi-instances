@@ -41,6 +41,12 @@ export interface InstanceRecord {
 	source?: string;
 	/** Sandbox name, for "yono-attach" records. */
 	sandbox?: string;
+	/**
+	 * Human-friendly label for this instance, shown as the primary name in the
+	 * viewer. Set via PI_INSTANCE_LABEL or the /instances-label command. When
+	 * set, it is also pushed to the terminal (pane) title.
+	 */
+	label?: string;
 }
 
 /** Root directory holding one JSON file per live pi instance. */

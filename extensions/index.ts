@@ -30,10 +30,21 @@ import {
 
 const HEARTBEAT_MS = 5000;
 
+// Pushing the label to the terminal (pane) title is on by default; each pane
+// sets its own surface title, so Ghostty shows whichever pane is focused.
+// Opt out with PI_INSTANCE_TITLE=0.
+function titlePushEnabled(): boolean {
+	const v = (process.env.PI_INSTANCE_TITLE ?? "").trim().toLowerCase();
+	return v !== "0" && v !== "off" && v !== "false";
+}
+
 export default function (pi: ExtensionAPI) {
 	const pid = process.pid;
 	let heartbeat: ReturnType<typeof setInterval> | undefined;
 	let exitHookInstalled = false;
+	// Latest ctx, captured at session_start, so the heartbeat and commands can
+	// reach ctx.ui (setTitle) outside of an event handler.
+	let latestCtx: ExtensionContext | undefined;
 
 	// Mutable current state, flushed to disk on every change + heartbeat.
 	const state: InstanceRecord = {
@@ -55,6 +66,22 @@ export default function (pi: ExtensionAPI) {
 		}
 		// In a sandbox, also beam status out over the PTY for yono to harvest.
 		emitBeacon(state);
+		// Keep the pane title showing the label. Re-applied on every flush so it
+		// survives pi's own periodic title updates.
+		pushTitle();
+	};
+
+	// Set the terminal (pane) surface title to the label via pi's title API
+	// (raw OSC would be clobbered by pi's own title management). No-op when the
+	// label is unset (leave pi's default title alone) or the push is disabled.
+	const pushTitle = () => {
+		if (!latestCtx?.hasUI || !titlePushEnabled()) return;
+		if (!state.label) return;
+		try {
+			latestCtx.ui.setTitle(state.label);
+		} catch {
+			/* best-effort */
+		}
 	};
 
 	const setStatus = (status: InstanceStatus, activity?: string) => {
@@ -76,6 +103,9 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	pi.on("session_start", async (_event, ctx: ExtensionContext) => {
+		latestCtx = ctx;
+		const envLabel = (process.env.PI_INSTANCE_LABEL ?? "").trim();
+		if (envLabel && !state.label) state.label = envLabel;
 		state.cwd = ctx.cwd;
 		state.project = projectLabel(ctx.cwd);
 		state.git = detectGitBranch(ctx.cwd);
@@ -108,6 +138,40 @@ export default function (pi: ExtensionAPI) {
 	pi.on("model_select", async (event) => {
 		state.model = `${event.model.provider}/${event.model.id}`;
 		flush();
+	});
+
+	// Name this instance. The label shows as the primary name in the viewer and
+	// (by default) is pushed to the terminal/pane title.
+	//   /instances-label <name>   set the label
+	//   /instances-label -        clear the label
+	//   /instances-label          show the current label
+	pi.registerCommand("instances-label", {
+		description: "Set this pi instance's label (shown in pi-instances and the tab title)",
+		handler: async (args, ctx) => {
+			const text = args.trim();
+			if (!text) {
+				ctx.ui.notify(`Instance label: ${state.label ?? "(none)"}`, "info");
+				return;
+			}
+			if (text === "-") {
+				state.label = undefined;
+				flush();
+				// Revert the pane title to a sensible pi default.
+				if (latestCtx?.hasUI && titlePushEnabled()) {
+					const base = pi.getSessionName?.() || projectLabel(state.cwd);
+					try {
+						ctx.ui.setTitle(`π - ${base}`);
+					} catch {
+						/* best-effort */
+					}
+				}
+				ctx.ui.notify("Instance label cleared", "info");
+				return;
+			}
+			state.label = text;
+			flush();
+			ctx.ui.notify(`Instance label set: ${text}`, "info");
+		},
 	});
 
 	pi.on("agent_start", async () => {
@@ -147,7 +211,7 @@ export default function (pi: ExtensionAPI) {
 				.sort((a, b) => a.project.localeCompare(b.project))
 				.map((r) => {
 					const mark = r.status === "working" ? "●" : r.status === "waiting" ? "○" : "◌";
-					const where = r.git ? `${r.project} (${r.git})` : r.project;
+					const where = r.label ? r.label : r.git ? `${r.project} (${r.git})` : r.project;
 					const act = r.activity ? ` — ${r.activity}` : "";
 					const self = r.pid === pid ? " [this]" : "";
 					return `${mark} ${r.status.padEnd(8)} ${where}${act}${self}`;
