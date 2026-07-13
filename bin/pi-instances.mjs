@@ -74,6 +74,45 @@ function listRecords() {
 	return records;
 }
 
+// Split registry records into local pi instances vs. yono-attach mirrors.
+function splitRecords(records) {
+	const pi = [];
+	const attach = [];
+	for (const r of records) {
+		if (r.source === "yono-attach") attach.push(r);
+		else pi.push(r);
+	}
+	return { pi, attach };
+}
+
+// Merge yono-attach registry records (which carry live status) with any
+// `yono attach` processes found via ps that don't yet have a record (e.g. an
+// older yono CLI, a shell session, or a just-started attach). Registry records
+// win; ps-only entries appear without status.
+function yonoAttachRows() {
+	const { attach } = splitRecords(listRecords());
+	const byPid = new Map();
+	const rows = [];
+	for (const r of attach) {
+		byPid.set(r.pid, true);
+		rows.push({
+			pid: r.pid,
+			sandbox: r.sandbox || r.project || "?",
+			session: r.session || "agent",
+			startedAt: r.startedAt,
+			updatedAt: r.updatedAt,
+			status: r.status,
+			activity: r.activity,
+			model: r.model,
+		});
+	}
+	for (const p of listYonoAttach()) {
+		if (byPid.has(p.pid)) continue;
+		rows.push({ ...p, status: null });
+	}
+	return rows.sort((a, b) => (a.sandbox || "").localeCompare(b.sandbox || ""));
+}
+
 function fmtAge(ms) {
 	const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
 	if (s < 60) return `${s}s`;
@@ -107,7 +146,7 @@ function pad(s, n) {
 }
 
 function render() {
-	const records = listRecords().sort((a, b) => {
+	const records = splitRecords(listRecords()).pi.sort((a, b) => {
 		const order = { working: 0, waiting: 1, starting: 2 };
 		const d = (order[a.status] ?? 3) - (order[b.status] ?? 3);
 		return d !== 0 ? d : (a.project || "").localeCompare(b.project || "");
@@ -219,12 +258,12 @@ function parseYonoAttachArgs(args) {
 
 function renderTop(width) {
 	const w = width || 80;
-	const records = listRecords().sort((a, b) => {
+	const records = splitRecords(listRecords()).pi.sort((a, b) => {
 		const order = { working: 0, waiting: 1, starting: 2 };
 		const d = (order[a.status] ?? 3) - (order[b.status] ?? 3);
 		return d !== 0 ? d : (a.project || "").localeCompare(b.project || "");
 	});
-	const attach = listYonoAttach();
+	const attach = yonoAttachRows();
 
 	const working = records.filter((r) => r.status === "working").length;
 	const waiting = records.filter((r) => r.status === "waiting").length;
@@ -266,14 +305,22 @@ function renderTop(width) {
 	if (attach.length === 0) {
 		lines.push(c(C.dim, "   (none)"));
 	} else {
-		lines.push(c(C.dim, " " + pad("PID", 8) + pad("SANDBOX", 28) + pad("SESSION", 12) + "AGE"));
+		lines.push(
+			c(C.dim, " " + pad("STATUS", 9) + pad("PID", 8) + pad("SANDBOX", 24) + pad("SESSION", 9) + pad("AGE", 7) + "ACTIVITY / MODEL"),
+		);
 		for (const a of attach) {
+			const statusStr = a.status
+				? statusCell({ status: a.status, updatedAt: a.updatedAt })
+				: c(C.dim, "· att   ");
+			const detail = a.activity ? a.activity : c(C.dim, a.model || "");
 			lines.push(
 				" " +
+					pad(statusStr, 9) +
 					pad(c(C.gray, String(a.pid)), 8) +
-					pad(c(C.cyan, (a.sandbox || "?").slice(0, 27)), 28) +
-					pad(a.session === "shell" ? c(C.dim, "shell") : "agent", 12) +
-					c(C.dim, fmtAge(a.startedAt)),
+					pad(c(C.cyan, (a.sandbox || "?").slice(0, 23)), 24) +
+					pad(a.session === "shell" ? c(C.dim, "shell") : "agent", 9) +
+					pad(c(C.dim, fmtAge(a.startedAt)), 7) +
+					detail,
 			);
 		}
 	}
@@ -346,7 +393,7 @@ function main() {
 		return;
 	}
 	if (args.includes("--json")) {
-		console.log(JSON.stringify({ pi: listRecords(), yonoAttach: listYonoAttach() }, null, 2));
+		console.log(JSON.stringify({ pi: splitRecords(listRecords()).pi, yonoAttach: yonoAttachRows() }, null, 2));
 		return;
 	}
 	if (args[0] === "top") {

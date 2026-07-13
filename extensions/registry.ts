@@ -33,6 +33,14 @@ export interface InstanceRecord {
 	activity?: string;
 	startedAt: number;
 	updatedAt: number;
+	/**
+	 * Origin of the record. Local pi instances leave this unset; records written
+	 * by `yono attach` (mirroring a remote sandbox agent's beacon) set
+	 * "yono-attach".
+	 */
+	source?: string;
+	/** Sandbox name, for "yono-attach" records. */
+	sandbox?: string;
 }
 
 /** Root directory holding one JSON file per live pi instance. */

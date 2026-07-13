@@ -18,7 +18,13 @@ Cooperative, file-based registry — no daemon.
   importing the TS module (keeps it toolchain-free). If you change the schema in
   `registry.ts`, update the viewer too. Modes: one-shot, `top` (alternate-screen
   dashboard with raw-key input), `-w` watch, `--json`.
-  - `top` shows two sections: **LOCAL PI** (registry) and **YONO ATTACH**.
+  - `top` shows two sections: **LOCAL PI** (registry, `source !== "yono-attach"`)
+    and **YONO ATTACH**.
+  - `splitRecords()` separates local pi records from `source: "yono-attach"`
+    records (written by the `yono attach` CLI — see the yono repo
+    `cmd/yono/cmd/attach_status.go`). `yonoAttachRows()` merges those
+    status-bearing records with `ps`-discovered attach processes, deduped by
+    PID (registry record wins; `ps`-only shows `· att` with no status).
   - `listYonoAttach()` parses `ps -eo pid=,lstart=,args=` for local
     `yono attach` processes (tolerates global flags before `attach` and
     `--session`/`--shell` after). It's local-only by design — no cluster calls.

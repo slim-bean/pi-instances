@@ -92,10 +92,13 @@ visible list of everything running:
 
 - **LOCAL PI** — local pi instances with live working/waiting status (from the
   registry).
-- **YONO ATTACH** — your local `yono attach` sessions (discovered via `ps`),
-  showing which sandbox each is connected to. Per-agent working/waiting for
-  remote sandboxes lives in yono itself (dashboard / `yono describe sandbox`),
-  since it isn't available locally without querying the cluster.
+- **YONO ATTACH** — your local `yono attach` sessions, showing which sandbox
+  each is connected to. A recent `yono` CLI mirrors the sandbox agent's live
+  **working/waiting** status into the registry (it decodes the same status
+  beacon from the terminal stream it already receives — keyed by the attach PID,
+  no cluster queries). Sessions from an older CLI, or before the first beacon,
+  show `· att` with no status. Set `YONO_PI_INSTANCES=0` on the `yono` side to
+  opt out.
 
 It uses the terminal's alternate screen and restores it cleanly on `q`, Ctrl+C,
 or exit.
