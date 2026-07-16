@@ -164,6 +164,12 @@ export default function (pi: ExtensionAPI) {
 			if (text === "-") {
 				state.label = undefined;
 				flush();
+				// Clear the session display name too (empty string clears it).
+				try {
+					pi.setSessionName?.("");
+				} catch {
+					/* best-effort */
+				}
 				// Revert the pane title to a sensible pi default.
 				if (latestCtx?.hasUI && titlePushEnabled()) {
 					const base = pi.getSessionName?.() || projectLabel(state.cwd);
@@ -178,6 +184,13 @@ export default function (pi: ExtensionAPI) {
 			}
 			state.label = text;
 			flush();
+			// Mirror the label into the session display name so it shows in the
+			// session selector as well as the viewer/tab title.
+			try {
+				pi.setSessionName?.(text);
+			} catch {
+				/* best-effort */
+			}
 			ctx.ui.notify(`Instance label set: ${text}`, "info");
 		},
 	});

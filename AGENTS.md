@@ -43,6 +43,9 @@ Cooperative, file-based registry — no daemon.
 - `label` (optional on `InstanceRecord`) is the human name shown in the viewer.
   Sourced from `PI_INSTANCE_LABEL` at `session_start` or the `/instances-label`
   command. `nameOf()` in the viewer prefers it over project/branch.
+- `/instances-label` also mirrors the label into the pi session display name via
+  `pi.setSessionName()` (empty string clears it), so it shows in the session
+  selector as well. Best-effort, wrapped in try/catch.
 - When a label is set, the extension pushes it to the terminal (pane) title via
   `ctx.ui.setTitle()` (never raw OSC — pi manages the title). `pushTitle()` is
   re-applied on every `flush()` so it survives pi's own periodic title updates.

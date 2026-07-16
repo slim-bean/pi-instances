@@ -127,7 +127,8 @@ session, and `/instances-label` to name the current instance.
 ## Naming an instance
 
 Give an instance a human-friendly label that shows as its primary name in the
-viewer (and, by default, becomes the terminal/pane title):
+viewer, the session display name (shown in pi's session selector), and, by
+default, the terminal/pane title:
 
 ```bash
 PI_INSTANCE_LABEL="pr-review" pi     # set at launch
@@ -140,6 +141,9 @@ or from inside pi:
 /instances-label                    # show current
 /instances-label -                  # clear
 ```
+
+Setting the label via `/instances-label` also sets the pi session name (like
+`/name`); clearing the label clears it too.
 
 **Multiple panes:** each Ghostty split is its own process, so each pane gets its
 own label and its own row in the viewer. The label is pushed to each pane's own
