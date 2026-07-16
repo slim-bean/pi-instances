@@ -56,8 +56,14 @@ Cooperative, file-based registry — no daemon.
 
 ## Sorting
 
-- Both viewer sections sort by `activityTime(r)` descending (most recent first):
-  `lastActivityAt ?? updatedAt ?? startedAt`.
+- Both viewer sections sort via `compareRecords`: `status === "working"`
+  instances are pinned to the top, then everything (working and non-working
+  alike) falls back to `activityTime(r)` descending (most recent first), with
+  `pid` as a stable tiebreaker so equal-activity rows never swap between polls.
+- `activityTime(r)` is `lastActivityAt ?? startedAt` — it deliberately does NOT
+  fall back to `updatedAt`, because the 5s heartbeat bumps `updatedAt` and that
+  would make idle/waiting rows drift upward and jitter. A waiting row stays put
+  (sorted by its last LLM response time) until it's interacted with again.
 - `lastActivityAt` advances only on real activity: `setStatus` (agent_start,
   tool_execution_start, agent_end) and in-memory `markActive()` on
   `message_update` / `tool_execution_update` (persisted by the next heartbeat).

@@ -111,7 +111,7 @@ function yonoAttachRows() {
 		if (byPid.has(p.pid)) continue;
 		rows.push({ ...p, status: null });
 	}
-	return rows.sort((a, b) => activityTime(b) - activityTime(a));
+	return rows.sort(compareRecords);
 }
 
 function fmtAge(ms) {
@@ -139,10 +139,25 @@ function statusCell(rec) {
 	}
 }
 
-// Time of last genuine activity, most-recent-first sort key. Falls back to the
-// heartbeat then start time for records/processes without an activity stamp.
+// Time of last genuine activity, most-recent-first sort key. Deliberately does
+// NOT fall back to `updatedAt` (the heartbeat bumps it every 5s, which would
+// make idle rows drift upward and the order jitter). Falls back to the fixed
+// start time so a waiting row stays put until it's interacted with again.
 function activityTime(r) {
-	return r.lastActivityAt ?? r.updatedAt ?? r.startedAt ?? 0;
+	return r.lastActivityAt ?? r.startedAt ?? 0;
+}
+
+// Display sort: any instance actively working sorts above everything else, then
+// the rest fall back to most-recent-activity order. This keeps busy agents
+// pinned to the top regardless of how long they've been running. `pid` is a
+// stable tiebreaker so equal-activity rows never swap places between polls.
+function compareRecords(a, b) {
+	const aw = a.status === "working" ? 1 : 0;
+	const bw = b.status === "working" ? 1 : 0;
+	if (aw !== bw) return bw - aw;
+	const dt = activityTime(b) - activityTime(a);
+	if (dt !== 0) return dt;
+	return (a.pid ?? 0) - (b.pid ?? 0);
 }
 
 // Primary display name for a local pi record: explicit label wins, else the
@@ -160,7 +175,7 @@ function pad(s, n) {
 }
 
 function render() {
-	const records = splitRecords(listRecords()).pi.sort((a, b) => activityTime(b) - activityTime(a));
+	const records = splitRecords(listRecords()).pi.sort(compareRecords);
 
 	const lines = [];
 	const stamp = new Date().toLocaleTimeString();
@@ -268,7 +283,7 @@ function parseYonoAttachArgs(args) {
 
 function renderTop(width) {
 	const w = width || 80;
-	const records = splitRecords(listRecords()).pi.sort((a, b) => activityTime(b) - activityTime(a));
+	const records = splitRecords(listRecords()).pi.sort(compareRecords);
 	const attach = yonoAttachRows();
 
 	const working = records.filter((r) => r.status === "working").length;
