@@ -50,7 +50,7 @@ Or point at a local checkout via `~/.pi/agent/settings.json`:
 ```jsonc
 {
   "packages": [
-    "../../projects/pi-instances"   // relative to ~/.pi/agent → ~/projects/pi-instances
+    "../../projects/pi-extensions/pi-instances"   // relative to ~/.pi/agent
   ]
 }
 ```
@@ -66,23 +66,23 @@ Reload pi (or `/reload`) and every instance starts reporting.
 
 ```bash
 # one-shot snapshot
-node ~/projects/pi-instances/bin/pi-instances.mjs
+node ~/projects/pi-extensions/pi-instances/bin/pi-instances.mjs
 
 # full-screen "top"-style dashboard (q quit, r refresh)
-node ~/projects/pi-instances/bin/pi-instances.mjs top
+node ~/projects/pi-extensions/pi-instances/bin/pi-instances.mjs top
 
 # simple watch mode, refresh every 2s (or pass seconds)
-node ~/projects/pi-instances/bin/pi-instances.mjs -w
-node ~/projects/pi-instances/bin/pi-instances.mjs -w 1
+node ~/projects/pi-extensions/pi-instances/bin/pi-instances.mjs -w
+node ~/projects/pi-extensions/pi-instances/bin/pi-instances.mjs -w 1
 
 # machine-readable ({ pi: [...], yonoAttach: [...] })
-node ~/projects/pi-instances/bin/pi-instances.mjs --json
+node ~/projects/pi-extensions/pi-instances/bin/pi-instances.mjs --json
 ```
 
 Handy shell alias (add to `~/.zshrc`):
 
 ```bash
-alias pis='node ~/projects/pi-instances/bin/pi-instances.mjs top'
+alias pis='node ~/projects/pi-extensions/pi-instances/bin/pi-instances.mjs top'
 ```
 
 ### `top` mode
