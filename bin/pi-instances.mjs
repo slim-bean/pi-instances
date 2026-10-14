@@ -197,7 +197,7 @@ function render() {
 	}
 
 	lines.push(
-		c(C.dim, pad("STATUS", 9) + pad("PID", 8) + pad("PROJECT", 40) + pad("AGE", 7) + "ACTIVITY / MODEL"),
+		c(C.dim, pad("STATUS", 9) + pad("PID", 8) + pad("PROJECT", 40) + pad("LAST ACTIVE", 13) + "ACTIVITY / MODEL"),
 	);
 	for (const r of records) {
 		const where = nameOf(r);
@@ -208,7 +208,7 @@ function render() {
 			pad(statusCell(r), 9) +
 				pad(c(C.gray, String(r.pid)), 8) +
 				pad(c(C.cyan, where.slice(0, 39)), 40) +
-				pad(c(C.dim, fmtAge(r.startedAt)), 7) +
+				pad(c(C.dim, fmtAge(activityTime(r))), 13) +
 				detail,
 		);
 	}
@@ -306,7 +306,7 @@ function renderTop(width) {
 	if (records.length === 0) {
 		lines.push(c(C.dim, "   (none)"));
 	} else {
-		lines.push(c(C.dim, " " + pad("STATUS", 9) + pad("PID", 8) + pad("PROJECT", 34) + pad("AGE", 7) + "ACTIVITY / MODEL"));
+		lines.push(c(C.dim, " " + pad("STATUS", 9) + pad("PID", 8) + pad("PROJECT", 34) + pad("LAST ACTIVE", 13) + "ACTIVITY / MODEL"));
 		for (const r of records) {
 			const where = nameOf(r);
 			const detail = r.activity ? r.activity : c(C.dim, r.model || "");
@@ -315,7 +315,7 @@ function renderTop(width) {
 					pad(statusCell(r), 9) +
 					pad(c(C.gray, String(r.pid)), 8) +
 					pad(c(C.cyan, where.slice(0, 33)), 34) +
-					pad(c(C.dim, fmtAge(r.startedAt)), 7) +
+					pad(c(C.dim, fmtAge(activityTime(r))), 13) +
 					detail,
 			);
 		}
@@ -327,7 +327,7 @@ function renderTop(width) {
 		lines.push(c(C.dim, "   (none)"));
 	} else {
 		lines.push(
-			c(C.dim, " " + pad("STATUS", 9) + pad("PID", 8) + pad("SANDBOX", 24) + pad("SESSION", 9) + pad("AGE", 7) + "ACTIVITY / MODEL"),
+			c(C.dim, " " + pad("STATUS", 9) + pad("PID", 8) + pad("SANDBOX", 24) + pad("SESSION", 9) + pad("LAST ACTIVE", 13) + "ACTIVITY / MODEL"),
 		);
 		for (const a of attach) {
 			const statusStr = a.status
@@ -340,7 +340,7 @@ function renderTop(width) {
 					pad(c(C.gray, String(a.pid)), 8) +
 					pad(c(C.cyan, (a.sandbox || "?").slice(0, 23)), 24) +
 					pad(a.session === "shell" ? c(C.dim, "shell") : "agent", 9) +
-					pad(c(C.dim, fmtAge(a.startedAt)), 7) +
+					pad(c(C.dim, fmtAge(activityTime(a))), 13) +
 					detail,
 			);
 		}

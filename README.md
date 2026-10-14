@@ -103,9 +103,11 @@ visible list of everything running:
 It uses the terminal's alternate screen and restores it cleanly on `q`, Ctrl+C,
 or exit.
 
-Both sections sort **most-recently-active first**, using a real activity
-timestamp (status change, tool step, or token stream) — not the 5s heartbeat —
-so whatever an agent last did floats to the top. Attached sandboxes sort the
+Both sections pin **working agents first**, then sort **most-recently-active
+first**, using a real activity timestamp (status change, tool step, or token
+stream) — not the 5s heartbeat. The **LAST ACTIVE** column shows elapsed time
+since that activity, falling back to process start time when activity data is
+unavailable. Attached sandboxes sort the
 same way when the yono CLI reports `lastActivityAt` (yono ≥ the PR that adds it).
 
 Example:
@@ -113,10 +115,10 @@ Example:
 ```
 pi instances  3 live · 1 working · 2 waiting   8:23:09 AM
 
-STATUS   PID     PROJECT                                  AGE    ACTIVITY / MODEL
-● work   62112   yono-worktree/main (feat/slack-chat)     4m     bash: make test
-○ wait   61841   yono-worktree/gen1 (add-more-pi-ext)     2h     anthropic/claude-opus-4-8
-○ wait   63001   pi-instances (main)                      1m     anthropic/claude-opus-4-8
+STATUS   PID     PROJECT                                 LAST ACTIVE  ACTIVITY / MODEL
+● work   62112   yono-worktree/main (feat/slack-chat)     2s           bash: make test
+○ wait   61841   yono-worktree/gen1 (add-more-pi-ext)     1m           anthropic/claude-opus-4-8
+○ wait   63001   pi-instances (main)                     2h           anthropic/claude-opus-4-8
 ```
 
 ## Inside pi

@@ -60,6 +60,8 @@ Cooperative, file-based registry — no daemon.
   instances are pinned to the top, then everything (working and non-working
   alike) falls back to `activityTime(r)` descending (most recent first), with
   `pid` as a stable tiebreaker so equal-activity rows never swap between polls.
+- The viewer's **LAST ACTIVE** column shows elapsed time since `activityTime(r)`
+  in snapshot/watch mode and both `top` sections (start time if activity is unknown).
 - `activityTime(r)` is `lastActivityAt ?? startedAt` — it deliberately does NOT
   fall back to `updatedAt`, because the 5s heartbeat bumps `updatedAt` and that
   would make idle/waiting rows drift upward and jitter. A waiting row stays put
