@@ -36,7 +36,7 @@ Install globally (loads in every pi instance) straight from git:
 ```bash
 pi install git:github.com/slim-bean/pi-instances
 # pin a release for reproducibility:
-pi install git:github.com/slim-bean/pi-instances@v0.1.0
+pi install git:github.com/slim-bean/pi-instances@v0.6.0
 ```
 
 Try it for one run without installing:

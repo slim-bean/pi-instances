@@ -1,6 +1,6 @@
 {
   "name": "pi-instances",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Track running pi instances and whether each agent is working or waiting for input.",
   "type": "module",
