@@ -155,6 +155,11 @@ export default function (pi: ExtensionAPI) {
 	//   /instances-label          show the current label
 	pi.registerCommand("instances-label", {
 		description: "Set this pi instance's label (shown in pi-instances and the tab title)",
+		getArgumentCompletions(prefix) {
+			return "-".startsWith(prefix.trimStart())
+				? [{ value: "-", label: "-", description: "Clear this instance's label" }]
+				: null;
+		},
 		handler: async (args, ctx) => {
 			const text = args.trim();
 			if (!text) {
